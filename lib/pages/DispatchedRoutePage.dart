@@ -1,9 +1,11 @@
-import 'dart:convert';
-import 'dart:typed_data';
+
 import 'package:easy_trip_app/presets.dart';
+import 'package:easy_trip_app/utilities/georegeo.dart';
 import 'package:easy_trip_app/utilities/screen_util.dart';
-import 'package:easy_trip_app/widgets/ECard.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_map/plugin_api.dart';
+import 'package:latlong/latlong.dart';
+import 'package:map/map.dart' as Extra;
 
 class DispatchedRouteArgument {
   Iterable<Spot> spots;
@@ -119,8 +121,13 @@ class DispatchedRoutePage extends StatefulWidget {
 
 class _DispatchedRoutePageState extends State<DispatchedRoutePage>
     with ScreenUtil {
+  String? location;
+
+
+
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
         title: Text("你的智能行程"),
@@ -130,12 +137,47 @@ class _DispatchedRoutePageState extends State<DispatchedRoutePage>
         children: [
           SizedBox(
             height: setHeight(400),
-            child: ECard(
-              title: "\"这里应该有一个地图来着（\"",
-              child: Text(
-                "有一说一, 确实((",
-                style: ECard.getSubtitleStyle(),
+            child: FlutterMap(
+              options: MapOptions(
+                center: getCenterPostion(),
+                zoom: 13,
               ),
+              nonRotatedLayers: [
+                TileLayerOptions(
+                    urlTemplate:
+                        "http://wprd04.is.autonavi.com/appmaptile?lang=zh_cn&size=1&style=7&x={x}&y={y}&z={z}",
+                    subdomains: ['a', 'b', 'c']),
+
+                PolylineLayerOptions(polylines: [
+                  Polyline(
+                      points: () {
+                    List<LatLng> points = [];
+                    var pt = widget.spots.firstWhere((element) => element.poiId == -1);
+                    points.add(LatLng(pt.latitude!, pt.longitude!));
+                    widget.routes.map((e) => e.end).forEach((element) {
+                      var spot = widget.spots
+                          .firstWhere((spot) => spot.poiId == element);
+                      if (spot.longitude != null)
+                        points.add(LatLng(spot.latitude!, spot.longitude!));
+                    });
+                    return points;
+                  }.call(),
+                    color: Colors.black87
+                  )
+                ]),
+                MarkerLayerOptions(
+                  markers: [
+                    Marker(
+                      width: 80.0,
+                      height: 80.0,
+                      point: LatLng(51.5, -0.09),
+                      builder: (ctx) => Container(
+                        child: FlutterLogo(),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
           Spacer(),
@@ -157,41 +199,41 @@ class _DispatchedRoutePageState extends State<DispatchedRoutePage>
                             Flexible(
                                 // flex: 2,
                                 child: Row(
-                                  children: [
-                                    Spacer(),
-                                    Flexible(
-                                      flex: 11,
-                                      child: Row(
-                                        children: [
-                                          //Chip
-                                          getChip(route.transport),
-                                          SizedBox(
-                                            width: 12,
-                                          ),
-                                          Text(
-                                            "•",
-                                            style: TextStyle(
-                                              color: Colors.green[50],
-                                              fontSize: 18,
-                                            ),
-                                          ),
-                                          SizedBox(
-                                            width: 12,
-                                          ),
-                                          Text(
-                                            "约${route.duration}分钟" +
-                                                (route.transport != 0
-                                                    ? " (含步行)"
-                                                    : ""),
-                                            style: TextStyle(
-                                                color: Colors.green[50],
-                                                fontWeight: FontWeight.bold),
-                                          ),
-                                        ],
+                              children: [
+                                Spacer(),
+                                Flexible(
+                                  flex: 11,
+                                  child: Row(
+                                    children: [
+                                      //Chip
+                                      getChip(route.transport),
+                                      SizedBox(
+                                        width: 12,
                                       ),
-                                    )
-                                  ],
-                                )),
+                                      Text(
+                                        "•",
+                                        style: TextStyle(
+                                          color: Colors.green[50],
+                                          fontSize: 18,
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        width: 12,
+                                      ),
+                                      Text(
+                                        "约${route.duration}分钟" +
+                                            (route.transport != 0
+                                                ? " (含步行)"
+                                                : ""),
+                                        style: TextStyle(
+                                            color: Colors.green[50],
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              ],
+                            )),
                             Spacer()
                           ],
                         ),
@@ -200,7 +242,7 @@ class _DispatchedRoutePageState extends State<DispatchedRoutePage>
               },
               itemBuilder: (context, id) {
                 var routes;
-                var spot;
+                Spot spot;
 
                 if (id == 0) {
                   spot =
@@ -210,6 +252,12 @@ class _DispatchedRoutePageState extends State<DispatchedRoutePage>
                   spot = widget.spots.firstWhere((x) => x.poiId == routes.end);
                 }
 
+                if (spot.latitude != null) {
+                  getRegeo(lat: spot.latitude!, lng: spot.longitude!)
+                      .then((result) => setState(() {
+                            location = result;
+                          }));
+                }
                 return Column(
                   children: [
                     SizedBox(
@@ -223,8 +271,9 @@ class _DispatchedRoutePageState extends State<DispatchedRoutePage>
                           child: Stack(children: [
                             ConstrainedBox(
                               constraints: BoxConstraints(
-                                maxWidth: setWidth(750) * 0.8 - setWidth(180) //
-                              ),
+                                  maxWidth:
+                                      setWidth(750) * 0.8 - setWidth(180) //
+                                  ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -235,9 +284,10 @@ class _DispatchedRoutePageState extends State<DispatchedRoutePage>
                                         fontSize: 24,
                                         color: Colors.grey[800]),
                                   ),
-                                  SizedBox(height: 4,),
-                                  Text(
-                                      "(${spot.longitude}, ${spot.latitude}) @poiId=${spot.poiId}"),
+                                  SizedBox(
+                                    height: 4,
+                                  ),
+                                  Text(location ?? ""),
                                 ],
                               ),
                             ),
@@ -248,72 +298,7 @@ class _DispatchedRoutePageState extends State<DispatchedRoutePage>
                                 width: setWidth(180),
                                 height: setHeight(200),
                                 child: FadeInImage.memoryNetwork(
-                                  placeholder: Uint8List.fromList(<int>[
-                                    0x89,
-                                    0x50,
-                                    0x4E,
-                                    0x47,
-                                    0x0D,
-                                    0x0A,
-                                    0x1A,
-                                    0x0A,
-                                    0x00,
-                                    0x00,
-                                    0x00,
-                                    0x0D,
-                                    0x49,
-                                    0x48,
-                                    0x44,
-                                    0x52,
-                                    0x00,
-                                    0x00,
-                                    0x00,
-                                    0x01,
-                                    0x00,
-                                    0x00,
-                                    0x00,
-                                    0x01,
-                                    0x08,
-                                    0x06,
-                                    0x00,
-                                    0x00,
-                                    0x00,
-                                    0x1F,
-                                    0x15,
-                                    0xC4,
-                                    0x89,
-                                    0x00,
-                                    0x00,
-                                    0x00,
-                                    0x0A,
-                                    0x49,
-                                    0x44,
-                                    0x41,
-                                    0x54,
-                                    0x78,
-                                    0x9C,
-                                    0x63,
-                                    0x00,
-                                    0x01,
-                                    0x00,
-                                    0x00,
-                                    0x05,
-                                    0x00,
-                                    0x01,
-                                    0x0D,
-                                    0x0A,
-                                    0x2D,
-                                    0xB4,
-                                    0x00,
-                                    0x00,
-                                    0x00,
-                                    0x00,
-                                    0x49,
-                                    0x45,
-                                    0x4E,
-                                    0x44,
-                                    0xAE
-                                  ]),
+                                  placeholder: kTransparentImage,
                                   image: spot.coverUrl ??
                                       "https://c-ssl.duitang.com/uploads/item/201701/11/20170111121734_8rkUP.thumb.1000_0.png",
                                   fit: BoxFit.cover,
@@ -362,7 +347,8 @@ class _DispatchedRoutePageState extends State<DispatchedRoutePage>
         break;
     }
     return Chip(
-      labelPadding: EdgeInsets.zero,//EdgeInsets.only(right: 16,), // according to the size of Icon
+      labelPadding: EdgeInsets.zero,
+      //EdgeInsets.only(right: 16,), // according to the size of Icon
       padding: EdgeInsets.only(right: 16, left: 1),
       backgroundColor: Colors.green[50],
       label: Text(
@@ -379,5 +365,21 @@ class _DispatchedRoutePageState extends State<DispatchedRoutePage>
         color: Colors.green[800],
       ),
     );
+  }
+
+  LatLng getCenterPostion() {
+    var spots =
+        widget.spots.where((element) => element.longitude != null).toList();
+    double minLat, maxLat, minLng, maxLng;
+    var lng = (spots.map((e) => e.longitude!).toList()
+      ..sort((a, b) => a.compareTo(b)));
+    minLng = lng.first;
+    maxLng = lng.last;
+    var lat = (spots.map((e) => e.latitude!).toList()
+      ..sort((a, b) => a.compareTo(b)));
+    minLat = lat.first;
+    maxLat = lat.last;
+
+    return LatLng((minLat + maxLat) / 2, (minLng + maxLng) / 2);
   }
 }

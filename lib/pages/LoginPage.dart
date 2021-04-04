@@ -46,7 +46,7 @@ class _LoginPageState extends State<StatefulWidget>
 
     if (cookieManager == null) {
       cookieManager = CookieManager(cookieJar);
-      dio.interceptors.add(cookieManager);
+      dio.interceptors.add(cookieManager!);
       cookieJar.loadForRequest(Uri.parse("https://api.ryuujo.com/"));
     }
     dio.options = BaseOptions();

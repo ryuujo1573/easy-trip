@@ -71,12 +71,16 @@ final Uint8List kTransparentImage = new Uint8List.fromList(<int>[
 ]);
 const platform = const MethodChannel("com.ryuujo/easy-trip");
 
-R let<T,R>(T x,R Function() f) {
-  return f();
+TimeOfDay getTimeByMinutes(int minute) {
+  return TimeOfDay(minute: minute % 60, hour: (minute / 60).floor());
+}
+
+R apply<T,R>(T x,R Function(T) f) {
+  return f(x);
 }
 
 extension let_ext on dynamic {
-   R let<T,R>(R Function(T) f) => f(this);
+   R let<T,R>(R Function(T) f) => apply(this as T, f);
    void set<T>(Function(T) f) => f(this);
 }
 
@@ -88,8 +92,8 @@ void notImplemented(BuildContext context, {String? name}) =>
     ));
 
 TextStyle defaultTextStyle = TextStyle(
-  color: Color(0xffb1bfca),
-  fontSize: 18,
+  color: Color(0xff666666),
+  fontSize: 16,
   fontFamily: "思源黑体",
   fontWeight: FontWeight.w300,
 );

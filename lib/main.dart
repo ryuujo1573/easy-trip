@@ -1,17 +1,19 @@
 import 'dart:ui';
 
+import 'package:easy_trip_app/pages/SpotDetailPage.dart';
+import 'package:easy_trip_app/pages/foundation/LoginPage.dart';
+import 'package:easy_trip_app/pages/foundation/SettingPage.dart';
+import 'package:easy_trip_app/pages/recommendation/WaterfallFlowSubpage.dart';
+import 'package:easy_trip_app/pages/schematization/DispatchedRoutePage.dart';
+import 'package:easy_trip_app/pages/schematization/NewTripPage.dart';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
-import 'utilities/screen_util.dart';
-import 'package:easy_trip_app/pages/DispatchedRoutePage.dart';
-import 'package:easy_trip_app/pages/NewTripPage.dart';
-import 'package:easy_trip_app/pages/SettingPage.dart';
-import 'package:easy_trip_app/pages/WaterfallFlowSubpage.dart';
-import 'package:easy_trip_app/pages/LoginPage.dart';
 import 'package:easy_trip_app/presets.dart';
 import 'package:easy_trip_app/widgets/BottomNaviBar.dart';
+import 'utilities/screen_util.dart';
 
 void main() => runApp(MyApp());
 
@@ -24,26 +26,45 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
           primarySwatch: Colors.green,
           fontFamily: "Source Han Sans CN | PingFang SC"),
-      home: MyHomePage(title: 'Flutter Demo Ryuujo!'),
+      home: MyHomePage(),
       routes: {
         "/login": (_) => LoginPage(),
         "/settings": (_) => SettingPage(),
         "/new-trip": (_) => NewTripPage(),
         // "/dispatch": (_) => DispatchedRoutePage()..initFromUri(),
-        ///dispatch
       },
       onGenerateRoute: (settings) {
-        var data = settings.arguments as DispatchedRouteArgument;
         if (settings.name == "/dispatch")
-          return MaterialPageRoute(builder: (__) => DispatchedRoutePage(spots: data.spots.toList(), routes: data.routes.toList()));
-        else return null;
+          return MaterialPageRoute(
+              builder: (__) => DispatchedRoutePage(
+                  arguments: settings.arguments! as dynamic));
+
+        if (settings.name == '/') {
+          return MaterialPageRoute(builder: (_) => MyHomePage());
+        }
+
+        var uri = settings.name?.let(Uri.parse);
+        if (uri == null) return null;
+
+        //有Spot对象，先异步请求网络并显示缓存的数据；
+        if (uri.pathSegments.length == 2 && uri.pathSegments.first == 'spots') {
+          var id = int.tryParse(uri.pathSegments[1]);
+          if (id == null) {
+            // todo: error page
+            throw Exception('poiId should be integer!');
+          }
+          // if (settings.arguments == null) return null;
+          return MaterialPageRoute(
+              builder: (context) => SpotDetailPage(poiId: id, spotName: settings.arguments as String?,)
+          );
+        }
       },
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key? key, required this.title}) : super(key: key);
+  MyHomePage({Key? key}) : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -53,8 +74,6 @@ class MyHomePage extends StatefulWidget {
   // case the title) provided by the parent (in this case the App widget) and
   // used by the build method of the State. Fields in a Widget subclass are
   // always marked "final".
-
-  final String title;
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -111,7 +130,6 @@ class _MyHomePageState extends State<MyHomePage>
                 ? min!
                 : size;
     var iconSize = setSize(setWidth(50), max: setHeight(60));
-
 
     return Scaffold(
         extendBody: true,
@@ -330,4 +348,3 @@ class _MyHomePageState extends State<MyHomePage>
         ));
   }
 }
-

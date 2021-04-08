@@ -2,12 +2,13 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:dio/dio.dart';
-import 'package:easy_trip_app/pages/DispatchedRoutePage.dart';
 import 'package:easy_trip_app/presets.dart';
 import 'package:easy_trip_app/utilities/screen_util.dart';
 import 'package:easy_trip_app/widgets/ECard.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
+import 'models/DispatchedRouteArgument.dart';
 
 class NewTripPage extends StatefulWidget {
   @override
@@ -82,7 +83,7 @@ class _presetCardState extends State<_presetCard> {
 class _NewTripPageState extends State<NewTripPage> with ScreenUtil {
   bool _platformCallFlag = true;
 
-  bool isWaiting = false;
+  // bool isWaiting = false;
 
   @override
   Widget build(BuildContext context) {
@@ -98,10 +99,10 @@ class _NewTripPageState extends State<NewTripPage> with ScreenUtil {
           color: Colors.lime[50]!,
         ),
         onPressed: () async {
-          if (!isWaiting)
-            isWaiting = true;
-          else
-            return; //TODO: 防止多次点击
+          // if (!isWaiting)
+          //   isWaiting = true;
+          // else
+          //   return; // todo: 防止多次点击
           // Fluttertoast.showToast(msg: "Android Call Test", fontSize: 18);
           var result = await Dio()
               .get("https://api.ryuujo.com/route/apiTest")
@@ -112,6 +113,8 @@ class _NewTripPageState extends State<NewTripPage> with ScreenUtil {
           if (kIsWeb) {
             return;
           }
+
+          //
           if (!Platform.isAndroid) {
             // !!!!!!!!!!!!!!!!!
             try {

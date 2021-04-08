@@ -15,7 +15,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 0.1+1
+version: 0.1.1-2
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
@@ -29,11 +29,18 @@ dependencies:
   map: any
   flutter_map: any
   latlong: any
-
+  marquee: any
+  markdown: any
+#  flutter_markdown: any
+  cached_network_image: any
+#  http: ^0.12.0
+#  path_provider: ^0.4.1   # 获取 安卓 iOS的文件缓存路径
+#  crypto: ^2.0.6   # MD5 base64转码   将图片的md5(url)作为key来缓存
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
+  shared_preferences: 2.0.5
 
 dev_dependencies:
   flutter_test:
@@ -51,7 +58,7 @@ flutter:
   uses-material-design: true
 
   assets:
-    - model.tflite
+    - assets/
   #  - assets/user_gradient.jpeg
   # To add assets to your application, add an assets section, like this:
   # assets:

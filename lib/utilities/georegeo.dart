@@ -2,13 +2,13 @@ import 'package:dio/dio.dart';
 
 Future<String> getRegeo({required double lat, required double lng}) async {
   return await Dio().get(
-    "",
+    "https://restapi.amap.com/v3/geocode/geo",
     queryParameters: {
       "key": "ad071fdc602c0751be489efc2ffe7af1",
       "location": "$lng,$lat"
     },
   ).then((value) {
-    assert(value.data['status'] == '1');
+    // assert(value.data['status'] == 1);
     var component = value.data['regeocodes']['addressComponent'];
     return
       component['district'].toString() +

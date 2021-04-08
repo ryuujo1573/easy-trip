@@ -1,6 +1,7 @@
 package com.ryuujo.easy_trip_app;
 
 import android.content.Context;
+import android.os.Build;
 
 import androidx.annotation.NonNull;
 
@@ -10,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
 
 import io.flutter.Log;
 import io.flutter.embedding.android.FlutterActivity;
@@ -42,6 +44,7 @@ public class MainActivity extends FlutterActivity {
                 );
     }
 
+
     private void aiboost_test(Context context) throws IOException {
         AiBoostInterpreter.Options options = new AiBoostInterpreter.Options();
 
@@ -71,10 +74,25 @@ public class MainActivity extends FlutterActivity {
 
         AiBoostInterpreter aiboost = new AiBoostInterpreter(modelBuffer, inputShapes, options);
         ByteBuffer it = aiboost.getInputTensor(0);
+//        Log.d("aiboost", "getInputTensor: " + it.toString());
+        FloatBuffer fb = it.asFloatBuffer();
+        fb.put(1);
+        ByteBuffer it2 = aiboost.getInputTensor(1);
         Log.d("aiboost", "getInputTensor: " + it.toString());
+        FloatBuffer fb2 = it.asFloatBuffer();
+        fb2.put(1);
+        ByteBuffer output = aiboost.getOutputTensor(0);
+        aiboost.runWithOutInputOutput();
+        FloatBuffer float_buff = output.asFloatBuffer();
+        float[] res = new float[float_buff.remaining()];
+        float_buff.get(res);
 
-        int[] shape = aiboost.getInputTensorShape(0);
-        Log.d("aiboost", "getInputTensorShape: " + aggregate(shape));
+        float x = res[0];
+        Log.d("aiboost", "x = " + String.valueOf(x));
+        // 输出这个x
+        //        int[] shape = aiboost.getInputTensorShape(0);
+        //        Log.d("aiboost", "getInputTensorShape: " + aggregate(shape));
+//
 
     }
 

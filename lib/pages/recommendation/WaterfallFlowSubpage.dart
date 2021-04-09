@@ -14,7 +14,7 @@ final Random rnd = Random(DateTime.now().millisecond);
 class WaterfallFlowSubpage extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
-    return _WaterfallFlowSubpageState().._getData(0);
+    return _WaterfallFlowSubpageState();
   }
 }
 
@@ -32,6 +32,8 @@ class _WaterfallFlowSubpageState extends State<WaterfallFlowSubpage>
         _getData(_page++);
       }
     });
+
+  bool getOnce = true;
 
   // bool isLoading = false;
 
@@ -83,6 +85,10 @@ class _WaterfallFlowSubpageState extends State<WaterfallFlowSubpage>
   @override
   Widget build(BuildContext context) {
     print('Build: StaggeredSubpage');
+    if (getOnce) {
+      getOnce = false;
+      _getData(0);
+    }
     // if (restOfItem <= 3) _getData();
     return
         //   CustomScrollView(
@@ -164,52 +170,55 @@ class _WaterfallFlowSubpageState extends State<WaterfallFlowSubpage>
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(4))),
         child: () {
-          return Container(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // FadeInImage.memoryNetwork(
-                //   placeholder: kTransparentImage,
-                //   // image: 'https://picsum.photos/${sizeList[index].width}/${sizeList[index].height}/',
-                //   image: "https://pan.qqsuu.cn/view/${index+100}.jpg",
-                //   fit: BoxFit.cover,
-                //
-                //   placeholderCacheHeight: 600,
-                // ),
+          return GestureDetector(
+            onTap: () => Navigator.of(context).pushNamed('/spots/${_items[index].id}', arguments: _items[index].name),
+            child: Container(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // FadeInImage.memoryNetwork(
+                  //   placeholder: kTransparentImage,
+                  //   // image: 'https://picsum.photos/${sizeList[index].width}/${sizeList[index].height}/',
+                  //   image: "https://pan.qqsuu.cn/view/${index+100}.jpg",
+                  //   fit: BoxFit.cover,
+                  //
+                  //   placeholderCacheHeight: 600,
+                  // ),
 
-                CachedNetworkImage(
-                    imageUrl:
-                        'https://easytrip123.oss-cn-beijing.aliyuncs.com/zip/zip/${_items[index].id}.png' //_items[index].coverUrl,
-                    ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(left: 8.0),
-                        child: Text(
-                          "${_items[index].name}",
-                          style: defaultTextStyle.copyWith(
-                            fontWeight: FontWeight.w300,
-                            fontSize: setSp(30),
-                            color: Colors.grey[800],
+                  CachedNetworkImage(
+                      imageUrl:
+                          'https://easytrip123.oss-cn-beijing.aliyuncs.com/zip/zip/${_items[index].id}.png' //_items[index].coverUrl,
+                      ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8.0),
+                          child: Text(
+                            "${_items[index].name}",
+                            style: defaultTextStyle.copyWith(
+                              fontWeight: FontWeight.w300,
+                              fontSize: setSp(30),
+                              color: Colors.grey[800],
+                            ),
                           ),
                         ),
-                      ),
-                      Row(
-                        children: _items[index]
-                            .tags
-                            .map((e) => Padding(
-                                  padding: const EdgeInsets.only(left: 0, top: 8, right: 8.0, bottom: 4),
-                                  child: getFixedTag(e),
-                                ))
-                            .toList(),
-                      )
-                    ],
+                        Row(
+                          children: _items[index]
+                              .tags
+                              .map((e) => Padding(
+                                    padding: const EdgeInsets.only(left: 0, top: 8, right: 8.0, bottom: 4),
+                                    child: getFixedTag(e),
+                                  ))
+                              .toList(),
+                        )
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           );
         }.call(),

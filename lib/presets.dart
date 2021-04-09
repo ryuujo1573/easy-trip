@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:easy_trip_app/utilities/screen_util.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -97,6 +98,37 @@ TextStyle defaultTextStyle = TextStyle(
   fontFamily: "思源黑体",
   fontWeight: FontWeight.w300,
 );
+
+extension CNM on ScreenUtil {
+  Widget getFixedTag(String tag) {
+    MaterialColor color = Colors.cyan;
+    TextStyle textStyle = TextStyle(
+      color: color[800]!,
+      fontSize: setSp(26),
+    );
+    return Container(
+      height: setHeight(32),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+          color: color[50],
+          border: null, //Border.all(color: color[400]!, width: 0.6),
+          borderRadius: BorderRadius.circular(100)),
+      child: Padding(
+        padding: EdgeInsets.only(
+            left: 8, right: 8, top: setHeight(3), bottom: setHeight(3)),
+        child: Text(
+          tag,
+          style: textStyle,
+          strutStyle: StrutStyle(
+            fontSize: textStyle.fontSize,
+            fontWeight: textStyle.fontWeight,
+            forceStrutHeight: true,
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 InputDecoration getInputDecoration(Size size, {String? placeholder}) =>
     InputDecoration(

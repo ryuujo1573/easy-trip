@@ -33,6 +33,7 @@ dependencies:
   markdown: any
 #  flutter_markdown: any
   cached_network_image: any
+  loading_indicator: 2.0.1
 #  http: ^0.12.0
 #  path_provider: ^0.4.1   # 获取 安卓 iOS的文件缓存路径
 #  crypto: ^2.0.6   # MD5 base64转码   将图片的md5(url)作为key来缓存

@@ -200,34 +200,7 @@ class _DispatchedRoutePageState extends State<DispatchedRoutePage>
     return LatLng((minLat + maxLat) / 2, (minLng + maxLng) / 2);
   }
 
-  Widget getFixedTag(String tag) {
-    MaterialColor color = Colors.cyan;
-    TextStyle textStyle = TextStyle(
-      color: color[800]!,
-      fontSize: setSp(26),
-    );
-    return Container(
-      height: setHeight(32),
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-          color: color[50],
-          border: null, //Border.all(color: color[400]!, width: 0.6),
-          borderRadius: BorderRadius.circular(100)),
-      child: Padding(
-        padding: EdgeInsets.only(
-            left: 8, right: 8, top: setHeight(3), bottom: setHeight(3)),
-        child: Text(
-          tag,
-          style: textStyle,
-          strutStyle: StrutStyle(
-            fontSize: textStyle.fontSize,
-            fontWeight: textStyle.fontWeight,
-            forceStrutHeight: true,
-          ),
-        ),
-      ),
-    );
-  }
+
 
   /// TODO: 处理enum
   Widget getTag(Spot spot) {

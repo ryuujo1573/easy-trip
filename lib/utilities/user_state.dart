@@ -14,40 +14,38 @@ enum LoginResult {
 }
 
 class SharedPrefStorage extends Storage {
-  late SharedPreferences _prefs;
-
   @override
-  Future<void> delete(String key) async {
-    _prefs.remove(key);
+  Future<void> delete(String key) {
+    return SharedPreferences.getInstance().then((value) => value.remove(key));
   }
 
   @override
   Future<void> deleteAll(List<String> keys) async {
-    keys.forEach((element) => _prefs.remove);
+    return keys.forEach((element) async =>
+        SharedPreferences.getInstance().then((value) => value.remove));
   }
 
   @override
-  Future<void> init(bool persistSession, bool ignoreExpires) async {
-    _prefs = await SharedPreferences.getInstance();
+  Future<void> init(bool persistSession, bool ignoreExpires) async {}
+
+  @override
+  Future<String?> read(String key) {
+    return SharedPreferences.getInstance()
+        .then((value) => value.getString(key));
   }
 
   @override
-  Future<String?> read(String key) async {
-    return _prefs.getString(key);
-  }
-
-  @override
-  Future<void> write(String key, String value) async {
-    print('write: $key:$value');
-    _prefs.setString(key, value);
+  Future<void> write(String key, String _value) {
+    print('write: $key:$_value');
+    return SharedPreferences.getInstance()
+        .then((value) => value.setString(key, _value));
   }
 }
 
 class User {
-  static Dio request = Dio()..interceptors.add(CookieManager(cookieJar));
-  static PersistCookieJar cookieJar =
+  static final request = Dio()..interceptors.add(CookieManager(cookieJar));
+  static final PersistCookieJar cookieJar =
       PersistCookieJar(storage: SharedPrefStorage());
-  static Future<SharedPreferences> prefs = SharedPreferences.getInstance();
   static const String keyToken = 'xxxxxxxxxTK';
   static const String keyUserName = 'xxxxxxxxxUserName';
 
@@ -60,9 +58,9 @@ class User {
     // }
     var data;
 
-    request
-        .get('https://api.ryuujo.com/login/logout')
-        .then((result) => print('Log out: ${result.data}'));
+    // request
+    //     .get('https://api.ryuujo.com/login/logout')
+    //     .then((result) => print('Log out: ${result.data}'));
     String? type;
     //TODO: finish the other login methods.
     try {
@@ -97,7 +95,6 @@ class User {
       return await request
           .post("https://api.ryuujo.com/login/login", data: data)
           .then((response) {
-
         print('Log in: ${response.data} @method: $type');
         if (response.data == 'Access Granted') {
           return LoginResult.ok;

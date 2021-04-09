@@ -18,14 +18,25 @@ import 'utilities/screen_util.dart';
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
+  bool isDarkMode(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark;
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: '易旅 | EasyTrip',
       theme: ThemeData(
           primarySwatch: Colors.green,
-          fontFamily: "Source Han Sans CN | PingFang SC"),
+          fontFamily: "Source Han Sans CN | PingFang SC",
+          dividerTheme: DividerThemeData(
+            color: isDarkMode(context)
+                ? Theme.of(context).primaryColorDark
+                : Colors.grey,
+          ),
+          textTheme: isDarkMode(context)
+              ? Typography.whiteCupertino
+              : Typography.blackCupertino),
       home: MyHomePage(),
       routes: {
         "/login": (_) => LoginPage(),
@@ -55,8 +66,10 @@ class MyApp extends StatelessWidget {
           }
           // if (settings.arguments == null) return null;
           return MaterialPageRoute(
-              builder: (context) => SpotDetailPage(poiId: id, spotName: settings.arguments as String?,)
-          );
+              builder: (context) => SpotDetailPage(
+                    poiId: id,
+                    spotName: settings.arguments as String?,
+                  ));
         }
       },
     );

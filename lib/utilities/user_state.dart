@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // 存储用户名
@@ -43,9 +46,54 @@ class SharedPrefStorage extends Storage {
 }
 
 class User {
-  static final request = Dio()..interceptors.add(CookieManager(cookieJar));
-  static final PersistCookieJar cookieJar =
-      PersistCookieJar(storage: SharedPrefStorage());
+  factory User() => _getInstance();
+  static User get instance => _instance;
+  static late User _instance;
+
+  static late int? id;
+  static late String? name;
+
+  //todo: 整一个登录回调，如果需要登录且没有登录态就跳到指定的页面!
+
+
+  User._internal() {
+    // request.interceptors.add(InterceptorsWrapper(
+    //   onRequest: (options, handler) async {
+    //     var prefs = await SharedPreferences.getInstance();
+    //     var sessionId = prefs.getString('_sessionId');
+    //     if (sessionId != null && sessionId.isNotEmpty) {
+    //       options.headers
+    //         ..addAll({
+    //           'Set-Cookie': 'sessionId=$sessionId',
+    //         });
+    //     }
+    //     handler.next(options);
+    //   },
+    // ));
+    // getApplicationDocumentsDirectory().then(
+    //   (value) => request
+    //     ..interceptors.add(
+    //       CookieManager(
+    //         cookieJar,
+    //         // CookieJar()
+    //       ),
+    //     ),
+    // );
+  }
+
+  static User _getInstance() {
+    if (_instance == null) {
+      _instance = new User._internal();
+    }
+    return _instance;
+  }
+
+  static final request = Dio();
+  // static final PersistCookieJar cookieJar = PersistCookieJar(
+  //     storage: SharedPrefStorage()
+  //  // FileStorage('${value.path}/.cookies/'),
+  // );
+
   static const String keyToken = 'xxxxxxxxxTK';
   static const String keyUserName = 'xxxxxxxxxUserName';
 
@@ -92,12 +140,20 @@ class User {
       } else {
         return LoginResult.formatError;
       }
+      var prefs = SharedPreferences.getInstance();
       return await request
           .post("https://api.ryuujo.com/login/login", data: data)
-          .then((response) {
+          .then((response) async {
         print('Log in: ${response.data} @method: $type');
-        if (response.data == 'Access Granted') {
-          return LoginResult.ok;
+        // ========================================
+        // FIXME!! ==============================
+        var data = response.data as Map<String, dynamic>;
+        if (data['error']! == 0) {
+          id = data['userID'];
+          name = data['userName'];
+          return
+          await prefs.then((value) => value.setString('_sessionId', data['sessionID'])) ?
+            LoginResult.ok : LoginResult.unknown;
         }
         String? errorCode = response.data['error']?.toString();
         if (errorCode != null) {

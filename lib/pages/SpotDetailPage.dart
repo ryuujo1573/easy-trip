@@ -75,30 +75,32 @@ class _SpotDetailPageState extends State<SpotDetailPage> with ScreenUtil {
                 height: setHeight(20),
               ),
             ),
-            SliverOffstage(
-              offstage: true,
-              sliver: SliverGrid.count(
-                crossAxisCount: 3,
-                crossAxisSpacing: setWidth(20),
-                children: [
-                  //Photos
-                  _Block(
-                    text: '1,470',
-                    tag: '实景图',
-                  ),
-                  //Likes
-                  _Block(
-                    text: '21,071',
-                    tag: '推荐',
-                  ),
-                  //Reviews
-                  _Block(
-                    text: '398',
-                    tag: '评价',
-                  ),
-                ],
-              ),
-            ),
+
+            // least todo: implement this
+            // SliverOffstage(
+            //   offstage: true,
+            //   sliver: SliverGrid.count(
+            //     crossAxisCount: 3,
+            //     crossAxisSpacing: setWidth(20),
+            //     children: [
+            //       //Photos
+            //       _Block(
+            //         text: '1,470',
+            //         tag: '实景图',
+            //       ),
+            //       //Likes
+            //       _Block(
+            //         text: '21,071',
+            //         tag: '推荐',
+            //       ),
+            //       //Reviews
+            //       _Block(
+            //         text: '398',
+            //         tag: '评价',
+            //       ),
+            //     ],
+            //   ),
+            // ),
             //评分
             SliverToBoxAdapter(
                 child: Row(
@@ -172,6 +174,10 @@ class _SpotDetailPageState extends State<SpotDetailPage> with ScreenUtil {
                       minLines: 8,
                       text: detail?.description ?? '...',
                       style: defaultTextStyle.copyWith(height: 1.5),
+                      shrinkIcon: Icon(
+                        Icons.arrow_circle_up_outlined,
+                        color: Colors.grey[500],
+                      ),
                       expandIcon: Icon(
                         Icons.arrow_drop_down_circle_outlined,
                         color: Colors.grey[500],

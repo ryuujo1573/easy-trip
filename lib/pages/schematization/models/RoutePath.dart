@@ -9,27 +9,34 @@ class RoutePath {
   // -1 represents that the end of the step is not a concrete position,
   // making the transport no sense.
   final int transport;
-  final int etd;
+  final int eta;
+
+  int get etd => eta - _duration;
+  int? get duration => _duration;
 
   // separate the way of route display by 10 minutes' duration,
   // e.g. spots separated in a near distance, without notable color change (below 10 mins),
   //      spots separated in a formal way with a contrasted color backgrounded.
-  final int duration;
+  late int _duration;
 
-  RoutePath(
-      {required this.start,
-        required this.end,
-        required this.transport,
-        required this.etd,
-        required this.duration});
+  RoutePath({
+    required this.start,
+    required this.end,
+    required this.transport,
+    required this.eta,
+    required int duration,
+  }){
+    _duration = duration;
+  }
+
 
   factory RoutePath.fromJson(Map<String, dynamic> json) {
     return RoutePath(
       start: json['start'],
       end: json['end'],
       transport: json['transport'] ?? -1,
-      etd: json['startTime'],
-      duration: json['time'],
+      eta: json['arriveTime']!,
+      duration: json['time'] ?? (json['arriveTime']! - json['lastArriveTime']!)
     );
   }
 }

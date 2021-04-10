@@ -1,8 +1,10 @@
 import 'dart:typed_data';
+import 'dart:ui';
 
 import 'package:easy_trip_app/utilities/screen_util.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:loading_indicator/loading_indicator.dart';
 
 final Uint8List kTransparentImage = new Uint8List.fromList(<int>[
   0x89,
@@ -76,13 +78,14 @@ TimeOfDay getTimeByMinutes(int minute) {
   return TimeOfDay(minute: minute % 60, hour: (minute / 60).floor());
 }
 
-R apply<T,R>(T x,R Function(T) f) {
+R apply<T, R>(T x, R Function(T) f) {
   return f(x);
 }
 
 extension let_ext on dynamic {
-   R let<T,R>(R Function(T) f) => apply(this as T, f);
-   void set<T>(Function(T) f) => f(this);
+  R let<T, R>(R Function(T) f) => apply(this as T, f);
+
+  void set<T>(Function(T) f) => f(this);
 }
 
 void notImplemented(BuildContext context, {String? name}) =>
@@ -106,26 +109,31 @@ extension CNM on ScreenUtil {
       color: color[800]!,
       fontSize: setSp(26),
     );
-    return Container(
-      height: setHeight(32),
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-          color: color[50],
-          border: null, //Border.all(color: color[400]!, width: 0.6),
-          borderRadius: BorderRadius.circular(100)),
-      child: Padding(
-        padding: EdgeInsets.only(
-            left: 8, right: 8, top: setHeight(3), bottom: setHeight(3)),
-        child: Text(
-          tag,
-          style: textStyle,
-          strutStyle: StrutStyle(
-            fontSize: textStyle.fontSize,
-            fontWeight: textStyle.fontWeight,
-            forceStrutHeight: true,
-          ),
-        ),
-      ),
+    var textWidget = Text(tag,
+        style: textStyle,
+        strutStyle: StrutStyle(
+          fontSize: textStyle.fontSize,
+          fontWeight: textStyle.fontWeight,
+          forceStrutHeight: true,
+        ));
+    return FittedBox(
+      fit: BoxFit.fitWidth,
+      child: Container(
+              height: setHeight(32),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                  color: color[50],
+                  border: null, //Border.all(color: color[400]!, width: 0.6),
+                  borderRadius: BorderRadius.circular(100)),
+              child: Padding(
+                padding: EdgeInsets.only(
+                    left: 8,
+                    right: 8,
+                    top: setHeight(3),
+                    bottom: setHeight(3)),
+                child: textWidget,
+              ),
+            ),
     );
   }
 }
@@ -165,3 +173,66 @@ InputDecoration getInputDecoration(Size size, {String? placeholder}) =>
           gapPadding: size.height / 1.6 //TODO: figure out how it should be set
           ),
     );
+
+Widget popupWaiting(BuildContext context, {String? description}) {
+  // AnimationController controller = AnimationController(
+  //     vsync: context.widget as SingleTickerProviderStateMixin,
+  //     duration: Duration(milliseconds: 1300));
+
+  return Stack(
+    children: [
+      FractionallySizedBox(
+          widthFactor: 1,
+          heightFactor: 1,
+          child:
+          // AnimatedBuilder(
+          //   animation: controller,
+          //   builder: (BuildContext context, Widget? child) {
+          //     return
+          BackdropFilter(
+            filter: ImageFilter.blur(
+              sigmaX: 8, //controller.value,
+              sigmaY: 8, //controller.value,
+            ),
+            //     child: child,
+            //   );
+            // },
+            child: AnimatedOpacity(
+                opacity: 0.2,
+                duration: Duration(seconds: 1),
+                child: Container(color: Colors.black)),
+          )),
+      Center(
+        child: FractionallySizedBox(
+          widthFactor: 0.4,
+          child: AspectRatio(
+            aspectRatio: 1,
+            child: Card(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+              child: Stack(
+                children: [
+                  Center(
+                    child: FractionallySizedBox(
+                        widthFactor: 0.2,
+                        child: LoadingIndicator(
+                          indicatorType: Indicator.circleStrokeSpin,
+                          color: Colors.black,
+                        )),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 20),
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Text(description ?? "Loading..."),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    ],
+  );
+}

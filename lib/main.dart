@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:easy_trip_app/pages/SpotDetailPage.dart';
 import 'package:easy_trip_app/pages/foundation/LoginPage.dart';
 import 'package:easy_trip_app/pages/foundation/SettingPage.dart';
+import 'package:easy_trip_app/pages/recommendation/SuisennPage.dart';
 import 'package:easy_trip_app/pages/recommendation/WaterfallFlowSubpage.dart';
 import 'package:easy_trip_app/pages/schematization/DispatchedRoutePage.dart';
 import 'package:easy_trip_app/pages/schematization/NewTripPage.dart';
@@ -14,8 +15,9 @@ import 'package:flutter/widgets.dart';
 import 'package:easy_trip_app/presets.dart';
 import 'package:easy_trip_app/widgets/BottomNaviBar.dart';
 import 'utilities/screen_util.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
-void main() => runApp(MyApp());
+void main() => initializeDateFormatting().then((_) => runApp(MyApp()));
 
 class MyApp extends StatelessWidget {
   bool isDarkMode(BuildContext context) {
@@ -50,6 +52,10 @@ class MyApp extends StatelessWidget {
               builder: (__) => DispatchedRoutePage(
                   arguments: settings.arguments! as dynamic));
 
+        if (settings.name == "/recommend")
+          return MaterialPageRoute(
+              builder: (__) => SuisennPage(settings.arguments! as Map<String, dynamic>));
+
         if (settings.name == '/') {
           return MaterialPageRoute(builder: (_) => MyHomePage());
         }
@@ -66,11 +72,14 @@ class MyApp extends StatelessWidget {
           }
           // if (settings.arguments == null) return null;
           return MaterialPageRoute(
-              builder: (context) => SpotDetailPage(
-                    poiId: id,
-                    spotName: settings.arguments as String?,
-                  ));
+            builder: (context) => SpotDetailPage(
+              poiId: id,
+              spotName: settings.arguments as String?,
+            ),
+          );
         }
+
+
       },
     );
   }

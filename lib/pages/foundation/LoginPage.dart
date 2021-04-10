@@ -9,7 +9,6 @@ import 'package:easy_trip_app/utilities/user_state.dart';
 import 'package:easy_trip_app/utilities/screen_util.dart';
 import 'package:easy_trip_app/widgets/EBox.dart';
 import 'package:easy_trip_app/presets.dart';
-import 'package:loading_indicator/loading_indicator.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -69,164 +68,87 @@ class _LoginPageState extends State<StatefulWidget>
           child: OverflowBox(
               alignment: Alignment.center,
               child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    ConstrainedBox(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  ConstrainedBox(
+                    constraints: sizeLimit,
+                    child: Container(
+                        width: autoWidthText,
+                        height: 60,
+                        child: TextField(
+                          keyboardType: TextInputType.text,
+                          style: defaultTextStyle,
+                          decoration: defaultDecoration.copyWith(
+                              hintText: "Account (Nickname / Phone / Mail)",
+                              counterText: ''),
+                          controller: _userAccountController,
+                          maxLength: 18,
+                        )),
+                  ),
+                  SizedBox(height: 25),
+                  ConstrainedBox(
                       constraints: sizeLimit,
                       child: Container(
                           width: autoWidthText,
                           height: 60,
                           child: TextField(
-                            keyboardType: TextInputType.text,
                             style: defaultTextStyle,
+                            obscureText: true,
+                            // or not,
                             decoration: defaultDecoration.copyWith(
-                                hintText: "Account (Nickname / Phone / Mail)",
-                                counterText: ''),
-                            controller: _userAccountController,
+                                hintText: "Password", counterText: ''),
+                            controller: _userPwdController,
                             maxLength: 18,
-                          )),
-                    ),
-                    SizedBox(height: 25),
-                    ConstrainedBox(
-                        constraints: sizeLimit,
-                        child: Container(
-                            width: autoWidthText,
-                            height: 60,
-                            child: TextField(
-                              style: defaultTextStyle,
-                              obscureText: true,
-                              // or not,
-                              decoration: defaultDecoration.copyWith(
-                                  hintText: "Password", counterText: ''),
-                              controller: _userPwdController,
-                              maxLength: 18,
-                            ))),
-                    SizedBox(height: 25),
-                    EBox(
-                      height: 60,
-                      width:
-                          (autoWidthText > maxWidth) ? maxWidth : autoWidthText,
-                      text: "Log in",
-                      onPressed: () async {
-                        setState(() => performingLogin = true);
-                        var entry = OverlayEntry(builder: _popupWaiting);
-                        Overlay.of(context)!.insert(entry);
-                        User.login(
-                                account: _userAccountController.value.text,
-                                password: _userPwdController.value.text)
-                            .then((value) async {
-                                  setState(() {
-                                    _errorController.value = TextEditingValue(
-                                        text: value.toString());
-                                  });
-                                  await Future.delayed(Duration(seconds: 3));
-                                  if (value == LoginResult.ok)
-                                    Navigator.of(context).pop();
-                                  entry.remove();
-                                });
-                      },
-                    ),
-                    SizedBox(height: 20),
-                    LimitedBox(
-                        maxWidth: 500,
-                        child: Container(
-                          height: 50,
-                          width: autoWidthText,
-                          color: Colors.grey[200],
-                          alignment: FractionalOffset.center,
-                          child: Text(
-                            (respCode == null)
-                                ? "debug output :)"
-                                : "[$respCode]: $result",
-                            style: TextStyle(
-                              color: Color(0xff6666ff),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        )),
-                    Container(
-                      width: autoWidthText,
-                      height: 100,
-                      color: Colors.grey[100],
-                      alignment: Alignment.topCenter,
-                      child: TextField(
-                        scrollController: ScrollController(),
-                        scrollPhysics: BouncingScrollPhysics(),
-                        decoration: InputDecoration(
-                          fillColor: Colors.white,
-                          border: InputBorder.none,
-                        ),
-                        enabled: false,
-                        textAlign: TextAlign.left,
-                        controller: _errorController,
-                        keyboardType: TextInputType.multiline,
-                        maxLines: 3,
-                      ),
-                    ),
-                  ]))),
+                          ))),
+                  SizedBox(height: 25),
+                  EBox(
+                    height: 60,
+                    width:
+                        (autoWidthText > maxWidth) ? maxWidth : autoWidthText,
+                    text: "Log in",
+                    onPressed: () async {
+                      setState(() => performingLogin = true);
+                      var entry = OverlayEntry(
+                          builder: (_) =>
+                              popupWaiting(_, description: '登录中...'));
+                      Overlay.of(context)!.insert(entry);
+                      User.login(
+                              account: _userAccountController.value.text,
+                              password: _userPwdController.value.text)
+                          .then((value) async {
+                        print('[User.login] $value');
+                        await Future.delayed(Duration(milliseconds: 500));
+                        entry.remove();
+                        if (value == LoginResult.ok)
+                          Navigator.of(context).pop();
+                      });
+                    },
+                  ),
+                  SizedBox(height: 200),
+                  EBox(
+                    height: 60,
+                    width:
+                        (autoWidthText > maxWidth) ? maxWidth : autoWidthText,
+                    text: "测试账号一键登录",
+                    onPressed: () async {
+                      setState(() => performingLogin = true);
+                      var entry = OverlayEntry(
+                          builder: (_) =>
+                              popupWaiting(_, description: '登录中...'));
+                      Overlay.of(context)!.insert(entry);
+                      User.login(
+                              account: 'irimsky',
+                              password: '123456')
+                          .then((value) async {
+                        await Future.delayed(Duration(seconds: 1));
+                        if (value == LoginResult.ok)
+                          Navigator.of(context).pop();
+                        entry.remove();
+                      });
+                    },
+                  )
+                ],
+              ))),
     );
   }
-}
-
-Widget _popupWaiting(BuildContext context) {
-  // AnimationController controller = AnimationController(
-  //     vsync: context.widget as SingleTickerProviderStateMixin,
-  //     duration: Duration(milliseconds: 1300));
-
-  return Stack(
-    children: [
-      FractionallySizedBox(
-          widthFactor: 1,
-          heightFactor: 1,
-          child:
-              // AnimatedBuilder(
-              //   animation: controller,
-              //   builder: (BuildContext context, Widget? child) {
-              //     return
-              BackdropFilter(
-            filter: ImageFilter.blur(
-              sigmaX: 8, //controller.value,
-              sigmaY: 8, //controller.value,
-            ),
-            //     child: child,
-            //   );
-            // },
-            child: AnimatedOpacity(
-                opacity: 0.2,
-                duration: Duration(seconds: 1),
-                child: Container(color: Colors.black)),
-          )),
-      Center(
-        child: FractionallySizedBox(
-          widthFactor: 0.4,
-          child: AspectRatio(
-            aspectRatio: 1,
-            child: Card(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
-              child: Stack(
-                children: [
-                  Center(
-                    child: FractionallySizedBox(
-                        widthFactor: 0.2,
-                        child: LoadingIndicator(
-                          indicatorType: Indicator.circleStrokeSpin,
-                          color: Colors.black,
-                        )),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.only(bottom: 20),
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Text("Logging..."),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    ],
-  );
 }

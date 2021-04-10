@@ -205,6 +205,7 @@ class _WaterfallFlowSubpageState extends State<WaterfallFlowSubpage>
                             ),
                           ),
                         ),
+
                         Row(
                           children: _items[index]
                               .tags

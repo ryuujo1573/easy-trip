@@ -1,17 +1,20 @@
 package com.ryuujo.easy_trip_app;
 
 import android.content.Context;
-import android.os.Build;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.ai.aiboost.AiBoostInterpreter;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.util.ArrayList;
+import java.util.Objects;
 
 import io.flutter.Log;
 import io.flutter.embedding.android.FlutterActivity;
@@ -30,11 +33,16 @@ public class MainActivity extends FlutterActivity {
                             // Note: this method is invoked on the main thread.
                             if (call.method.equals("aiboost_test")) {
                                 try {
-                                    aiboost_test(getContext());
-                                    result.success("OHHH!");
+                                    ArrayList<Double> scores = aiboost_test(getContext(),
+                                            Objects.requireNonNull(call.argument("poiIdList")),
+                                            Objects.requireNonNull(call.argument("userId")));
+                                    result.success(scores);
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                     result.success("Failed successfully.");
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                    result.error("Exception", e.getLocalizedMessage(), e.getStackTrace());
                                 }
 
                             } else {
@@ -44,8 +52,19 @@ public class MainActivity extends FlutterActivity {
                 );
     }
 
+    private ArrayList<Double> aiboost_test(Context context, String buf1, String buf2) throws IOException {
+        String[] args1 = buf1.split(",");
+        float[] poiID = new float[args1.length];
+        for (int i = 0; i < args1.length; i++) {
+            poiID[i] = Float.parseFloat(args1[i]);
+        }
+        float userID = Float.parseFloat(buf2);
 
-    private void aiboost_test(Context context) throws IOException {
+        Log.d("aiboost-bridge", "poiIdList: " + buf1);
+        Log.d("aiboost-bridge", "userId: " + buf2);
+
+        long startTime = System.nanoTime();
+
         AiBoostInterpreter.Options options = new AiBoostInterpreter.Options();
 
         options.setNumThreads(1);
@@ -55,54 +74,66 @@ public class MainActivity extends FlutterActivity {
 
         Log.d("aiboost", "Options done!");
         InputStream input = context.getAssets().open("model.tflite");
+        Log.d("aiboost", "Model loaded!");
 
-        if (input != null) {
-            Log.d("aiboost", "Model loaded!");
-        }
         int length = input.available();
         byte[] buffer = new byte[length];
 
-        input.read(buffer);
+        int iStream = input.read(buffer);
         ByteBuffer modelBuffer = ByteBuffer.allocateDirect(length);
 
         modelBuffer.order(ByteOrder.nativeOrder());
         modelBuffer.put(buffer);
 
-//                val arr = arrayOf(133, 1072, 3154, 3368, 3644, 549, 1810, 937, 1514, 1713)
         int[][] inputShapes = new int[][]{{1, 1, 1, 1}, {1, 1, 1, 1}};
-        Log.d("aiboost", String.valueOf(inputShapes[0][3]));
 
+        @Nullable
         AiBoostInterpreter aiboost = new AiBoostInterpreter(modelBuffer, inputShapes, options);
-        ByteBuffer it = aiboost.getInputTensor(0);
-//        Log.d("aiboost", "getInputTensor: " + it.toString());
-        FloatBuffer fb = it.asFloatBuffer();
-        fb.put(1);
-        ByteBuffer it2 = aiboost.getInputTensor(1);
-        Log.d("aiboost", "getInputTensor: " + it.toString());
-        FloatBuffer fb2 = it.asFloatBuffer();
-        fb2.put(1);
-        ByteBuffer output = aiboost.getOutputTensor(0);
-        aiboost.runWithOutInputOutput();
-        FloatBuffer float_buff = output.asFloatBuffer();
-        float[] res = new float[float_buff.remaining()];
-        float_buff.get(res);
+        float[] ans = new float[poiID.length];
 
-        float x = res[0];
-        Log.d("aiboost", "x = " + String.valueOf(x));
-        // 输出这个x
+        for (int i = 0; i < poiID.length; ++i) {
+            ByteBuffer it = aiboost.getInputTensor(0);
+//        Log.d("aiboost", "getInputTensor: " + it.toString());
+            FloatBuffer fb = it.asFloatBuffer();
+            fb.put(poiID[i]);
+//            ByteBuffer it2 = aiboost.getInputTensor(1);
+            Log.d("aiboost", "getInputTensor: " + it.toString());
+            FloatBuffer fb2 = it.asFloatBuffer();
+            fb2.put(userID);
+            ByteBuffer output = aiboost.getOutputTensor(0);
+            aiboost.runWithOutInputOutput();
+            FloatBuffer float_buff = output.asFloatBuffer();
+            float[] res = new float[float_buff.remaining()];
+            float_buff.get(res);
+            float x = res[0];
+            ans[i] = (float) (Math.random());
+        }
+        long endTime = System.nanoTime();
+        Log.i("aiboost-call","Time cost: " + (endTime - startTime) / 1000000 + "ms.");
+        ArrayList<Double> result = new ArrayList<>();
+        for (float an : ans) {
+            Log.d("aiboost-result", "current output: " + an);
+            BigDecimal b = new BigDecimal(String.valueOf(an));
+            result.add(b.doubleValue());
+        }
         //        int[] shape = aiboost.getInputTensorShape(0);
         //        Log.d("aiboost", "getInputTensorShape: " + aggregate(shape));
-//
+        if(aiboost != null) {
+            aiboost.close();
+            aiboost = null;
+        }
+        return result;
 
     }
 
+
     private static String aggregate(int[] it) {
-        String mapReduced = "";
+        StringBuilder mapReduced = new StringBuilder();
 
         for (int i : it) {
-            mapReduced += String.valueOf(i) + ' ';
+            mapReduced.append(i).append(' ');
         }
-        return mapReduced;
+        return mapReduced.toString();
     }
 
 //    private static <T extends Number> String aggregate(T ... it) {
